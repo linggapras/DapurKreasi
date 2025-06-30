@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DapurKreasi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Quicksand', sans-serif;
+      background: linear-gradient(45deg, #fdfcfb, #e2d1c3);
+      color: #3e2723;
+    }
+    header {
+      text-align: center;
+      padding: 2rem 1rem;
+      background-color: #fff8e1;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    h1 {
+      font-size: 2.5rem;
+      color: #bf360c;
+    }
+    p.slogan {
+      color: #6d4c41;
+      margin-top: 0.3rem;
+    }
+    section {
+      max-width: 960px;
+      margin: 1rem auto;
+      background: #fff3e0;
+      padding: 1.5rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    select, input[type='file'], textarea, input[type='text'] {
+      margin-top: 1rem;
+      padding: 0.5rem;
+      width: 100%;
+      font-size: 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1rem;
+      background: #ff7043;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .recipe-card {
+      background: #ffe0b2;
+      margin: 0.5rem 0;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 0 5px #bbb;
+      position: relative;
+    }
+    .recipe-card h3 {
+      margin-top: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .nutrition-preview {
+      margin-top: 1rem;
+      background: #ffecb3;
+      padding: 1rem;
+      text-align: center;
+      font-weight: bold;
+      border-radius: 0.5rem;
+    }
+    .delete-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #d32f2f;
+      color: white;
+      border: none;
+      padding: 0.3rem 0.6rem;
+      font-size: 0.8rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    footer {
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.9rem;
+      color: #795548;
+    }
+    @media screen and (min-width: 768px) {
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🍳 DapurKreasi</h1>
+    <p class="slogan">Kreasikan masakan dari dapurmu, dengan mudah!</p>
+  </header>
+
+  <section>
+    <h2>1. Pilih Bahan Utama 🥦</h2>
+    <select id="ingredientSelect" onchange="generateRecipes()">
+    </select>
+  </section>
+
+  <section>
+    <h2>2. Rekomendasi Resep 🍲</h2>
+    <div id="recipeResults"></div>
+  </section>
+
+  <section>
+    <h2>3. Info Kandungan Gizi 🧪</h2>
+    <div id="nutritionResult" class="nutrition-preview">Pilih bahan untuk melihat info gizi.</div>
+  </section>
+
+  <section>
+    <h2>4. Upload Resep Buatanmu ✍️</h2>
+    <input type="text" id="userRecipeName" placeholder="Nama resep">
+    <textarea id="userRecipeSteps" placeholder="Langkah-langkah resep" rows="4"></textarea>
+    <input type="text" id="userRecipeIngredient" placeholder="Bahan utama (contoh: jagung)">
+    <input type="text" id="userRecipeNutrition" placeholder="Nilai gizi bahan utama">
+    <button onclick="saveUserRecipe()">Simpan Resep</button>
+    <div id="userRecipes"></div>
+  </section>
+
+  <footer>
+    <p>DapurKreasi © 2025 - Siap online & offline 🌐</p>
+    <section>
+    <button onclick="downloadThisPage()">📥 Download Web Ini</button>
+    </section>
+
+  </footer>
+
+  <script>
+    let recipeData = {
+      tempe: [
+        { nama: "Tempe Mendoan", resep: "Iris tipis tempe, balur dengan tepung berbumbu, goreng setengah matang. Sajikan hangat dengan sambal kecap." },
+        { nama: "Tempe Orek Pedas", resep: "Goreng tempe, tumis bawang putih, cabai, tambahkan kecap manis. Masukkan tempe, aduk hingga merata." }
+      ],
+      ayam: [
+        { nama: "Ayam Bakar Madu", resep: "Lumuri ayam dengan bumbu madu, bawang, dan kecap. Bakar perlahan sambil dioles sisa bumbu." }
+      ],
+      telur: [
+        { nama: "Telur Dadar Crispy", resep: "Kocok telur, tambah tepung dan daun bawang. Goreng hingga garing dan renyah." }
+      ],
+      tahu: [
+        { nama: "Tahu Gejrot", resep: "Iris tahu goreng, siram dengan kuah asam manis dari bawang dan cabai." }
+      ]
+    };
+
+    let giziData = {
+      tempe: "Tempe: kaya protein, mengandung serat, vitamin B, dan rendah lemak.",
+      ayam: "Ayam: tinggi protein, cocok untuk pembentukan otot dan rendah karbohidrat.",
+      telur: "Telur: sumber protein hewani, mengandung vitamin D dan kolin.",
+      tahu: "Tahu: sumber protein nabati, mengandung zat besi dan kalsium."
+    };
+
+    function updateIngredientOptions() {
+      const select = document.getElementById("ingredientSelect");
+      select.innerHTML = "";
+      const allKeys = Object.keys(recipeData);
+      allKeys.forEach(k => {
+        const opt = document.createElement("option");
+        opt.value = k;
+        opt.textContent = k.charAt(0).toUpperCase() + k.slice(1);
+        select.appendChild(opt);
+      });
+    }
+
+    function generateRecipes() {
+      const ingredient = document.getElementById("ingredientSelect").value;
+      const container = document.getElementById("recipeResults");
+      const gizi = document.getElementById("nutritionResult");
+      container.innerHTML = "";
+      if (recipeData[ingredient]) {
+        recipeData[ingredient].forEach(item => {
+          const card = document.createElement("div");
+          card.className = "recipe-card";
+          card.innerHTML = `<h3>🍽️ ${item.nama}</h3><p>${item.resep}</p>`;
+          container.appendChild(card);
+        });
+      }
+      gizi.textContent = giziData[ingredient] || "Gizi: belum tersedia untuk bahan ini.";
+    }
+
+    function saveUserRecipe() {
+      const name = document.getElementById("userRecipeName").value.trim();
+      const steps = document.getElementById("userRecipeSteps").value.trim();
+      const ingredient = document.getElementById("userRecipeIngredient").value.trim().toLowerCase();
+      const nutrition = document.getElementById("userRecipeNutrition").value.trim();
+      if (!name || !steps || !ingredient || !nutrition) return alert("Isi semua bagian terlebih dahulu!");
+
+      // Simpan ke localStorage
+      const existing = JSON.parse(localStorage.getItem("userRecipes") || "[]");
+      existing.push({ nama: name, resep: steps, bahan: ingredient });
+      localStorage.setItem("userRecipes", JSON.stringify(existing));
+
+      // Tambah ke recipeData
+      if (!recipeData[ingredient]) recipeData[ingredient] = [];
+      recipeData[ingredient].push({ nama: name, resep: steps });
+
+      // Tambah gizi jika belum ada
+      if (!giziData[ingredient]) giziData[ingredient] = nutrition;
+
+      // Reset form
+      document.getElementById("userRecipeName").value = "";
+      document.getElementById("userRecipeSteps").value = "";
+      document.getElementById("userRecipeIngredient").value = "";
+      document.getElementById("userRecipeNutrition").value = "";
+
+      updateIngredientOptions();
+      loadUserRecipes();
+    }
+
+    function loadUserRecipes() {
+      const data = JSON.parse(localStorage.getItem("userRecipes") || "[]");
+      const container = document.getElementById("userRecipes");
+      container.innerHTML = "";
+      data.forEach((item, index) => {
+        const div = document.createElement("div");
+        div.className = "recipe-card";
+        div.innerHTML = `<h3>📝 ${item.nama}</h3><p>${item.resep}</p><button class='delete-btn' onclick='deleteUserRecipe(${index})'>Hapus</button>`;
+        container.appendChild(div);
+      });
+    }
+
+    function deleteUserRecipe(index) {
+      const data = JSON.parse(localStorage.getItem("userRecipes") || "[]");
+      const removed = data.splice(index, 1)[0];
+      localStorage.setItem("userRecipes", JSON.stringify(data));
+
+      // Hapus dari recipeData dan giziData jika tidak ada lagi
+      if (removed) {
+        const list = recipeData[removed.bahan] || [];
+        recipeData[removed.bahan] = list.filter(r => r.nama !== removed.nama);
+        if (recipeData[removed.bahan].length === 0) delete recipeData[removed.bahan];
+      }
+
+      updateIngredientOptions();
+      loadUserRecipes();
+      generateRecipes();
+    }
+
+    window.onload = function() {
+      const saved = JSON.parse(localStorage.getItem("userRecipes") || "[]");
+      saved.forEach(r => {
+        if (!recipeData[r.bahan]) recipeData[r.bahan] = [];
+        recipeData[r.bahan].push({ nama: r.nama, resep: r.resep });
+      });
+      updateIngredientOptions();
+      generateRecipes();
+      loadUserRecipes();
+    }
+    function downloadThisPage() {
+  fetch(window.location.href)
+    .then(res => res.blob())
+    .then(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'DapurKreasi.html';
+      a.click();
+    })
+    .catch(() => alert("Gagal mengunduh. Buka halaman ini dari koneksi internet, bukan file langsung."));
+}
+
+  </script>
+  
+</body>
+</html>
